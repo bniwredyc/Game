@@ -61,7 +61,6 @@ class Actor{
   }
 
   get right(){
-    // console.log(this.size)
     return this.pos.x + this.size.x;
   }
 
@@ -126,10 +125,10 @@ class Level{
     if(!(vect instanceof Vector) || !(size instanceof Vector)){
       throw new Error('Передан не Vector!');
     }
-    let left = Math.floor(vect.x);
-    let right = Math.floor(vect.x + size.x);
-    let top = Math.floor(vect.y);
-    let bottom = Math.floor(vect.y + size.y);
+    let left = Math.ceil(vect.x);
+    let right = Math.ceil(vect.x + size.x);
+    let top = Math.ceil(vect.y);
+    let bottom = Math.ceil(vect.y + size.y);
 
     if((left < 0) || (right > this.width) || (top < 0)){
       return 'wall';
@@ -157,8 +156,8 @@ class Level{
   }
 
   noMoreActors(type){
-    for(let actor in this.actors){
-      if(actor.type == this.type){
+  	for(let actor of this.actors){
+      if(actor.type == type){
         return false;
       }
     }
@@ -177,8 +176,10 @@ class Level{
       this.removeActor(actor);
       if(this.noMoreActors('coin')){
       this.status = 'won';
+      return;
       }
       return;
     }
   }
 }
+
