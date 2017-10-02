@@ -11,10 +11,13 @@ class Vector{
     }
     let x = this.x + vector.x;
     let y = this.y + vector.y;
+    // Здесь можно просто return new Vector(x,y)
+    // и расчёт новых значений можно без создания переменных прямо в конструктор передавать - будет одна строчка
     let newVector = new Vector(x,y);
     return newVector;
   }
 
+  // можно добавить значение по-умолчанию = 1
   times(number){
     let x = this.x * number;
     let y = this.y * number;
@@ -25,6 +28,7 @@ class Vector{
 
 class Actor{
   constructor(pos, size, speed){
+    // Значения по-умолчанию должны задаваться в сигнатуре
     if(!pos){
       pos = new Vector(0,0);
     }
@@ -73,12 +77,15 @@ class Actor{
   }
 
   isIntersect(obj){
+    // вторая проверка лишняя  undefined instanceof Actor === false
     if(!(obj instanceof Actor) || !obj){
       throw new Error('Ошибка с аргументом!');
     }
     if(obj === this){
       return false;
     }
+
+    // тут лучше написать просто return <условие из if>
     if(obj.left < this.right && obj.right > this.left && obj.top < this.bottom && obj.bottom > this.top){
       return true;
     }else{
@@ -89,6 +96,7 @@ class Actor{
 
 class Level{
   constructor(grid = [], actors = []){
+    // здесь лучше создать копии массивов, чтобы поля объекта нельзя было изменить извне
     this.grid = grid;
     this.actors = actors;
     this.player = this.actors.find(actor => actor.type === 'player');
@@ -96,17 +104,22 @@ class Level{
     this.finishDelay = 1;
   }
 
+  // можно задать в конструкторе
   get height(){
     return this.grid.length;
   }
 
+  // можно посчитать один раз в конструкторе
   get width(){
+    // короче было бы использовать Math.max и метод map
+    // тут можно использовать стрелочную функцию
      return this.grid.reduce(function(prev, ar) {
 			return ar.length > prev ? ar.length : prev;
 		}, 0);
   }
 
   isFinished(){
+    // короче писать просто return ...
     if(this.status !== null && this.finishDelay < 0){
       return true;
     }else{
@@ -115,9 +128,11 @@ class Level{
   }
 
   actorAt(actor){
+    // вторая проверка лишняя
     if(!(actor instanceof Actor) || actor === undefined){
       throw new Error('Передан некорректный объект!');
     }
+
     return this.actors.find((el) => el.isIntersect(actor));
   }
 
@@ -125,6 +140,8 @@ class Level{
     if(!(vect instanceof Vector) || !(size instanceof Vector)){
       throw new Error('Передан не Vector!');
     }
+
+    // тут ошибка
     let left = Math.ceil(vect.x);
     let right = Math.ceil(vect.x + size.x);
     let top = Math.ceil(vect.y);
@@ -140,6 +157,7 @@ class Level{
 
     for(let x = left; x < right; x++){
       for(let y = top; y < bottom; y++){
+        // дублирование логики obstacleFromSymbol
         if((this.grid[y][x] === 'wall') || this.grid[y][x] === 'lava'){
           return this.grid[y][x];
         }
@@ -158,6 +176,7 @@ class Level{
   }
 
   noMoreActors(type){
+    // здесь можно использовать метод some
   	for(let actor of this.actors){
       if(actor.type == type){
         return false;
@@ -170,6 +189,7 @@ class Level{
     if(this.status !== null){
       return;
     }
+    // лучше использовать ===
     if(type == 'lava' || type == 'fireball'){
       this.status = 'lost';
       return;
@@ -177,47 +197,60 @@ class Level{
     if(type == 'coin' && actor.type == 'coin'){
       this.removeActor(actor);
       if(this.noMoreActors('coin')){
+        // форматирование
      	this.status = 'won';
+     	  // лишний return
       	return;
       }
+
+      // лишний return
       return;
     }
   }
 }
 
 class LevelParser{
-
+  // dictin не совсем корректное сокращение, лучше dict или dictionary без сокращения
 	constructor(dictin){
+	  // форматирование
+    // лушче создать копию объекта
         this.dictin = dictin;
 	}
 
 	actorFromSymbol(symbol){
+	  // лишняя проверка
         if(this.dictin && symbol) {
         	return this.dictin[symbol];
         }
 	}
 
 	obstacleFromSymbol(symbol){
+	  // форматирование
         if(symbol == 'x'){
         	return 'wall';
         }else if(symbol == '!'){
         	return 'lava';
         }else{
+          // тут можно обойтись без else
         	return undefined;
         }
 	}
 
 	createGrid(array){
+	  // дублирование логики obstacleFromSymbol
        let ar = {
        	'x' : 'wall',
        	'!' : 'lava'
        }
+     // форматирование
        return array.map(function(string) {
+       // строку можно преобразовать в массив другим способом
 			return [...string].map(el => ar[el]);
 		});
 	}
 
 	createActors(array){
+	  // используйте стрелочные функции
 		let self = this;
 		return array.reduce(function(prev, string, Y) {
 			[...string].forEach(function(symb, X) {
@@ -244,12 +277,15 @@ class LevelParser{
 class Fireball extends Actor{
     constructor(pos, speed){
        super();
+       // значения по-умолчанию лучше задавать по-другому
        if(!pos){
        	pos = new Vector(0,0);
        }
        if(!speed){
        	speed = new Vector(0,0);
        }
+
+       // совйства должно задаваться через базовый конструктор
        this.pos = pos;
        this.speed = speed;
        this.size = new Vector(1,1);
@@ -441,6 +477,8 @@ class Player extends Actor{
 // const parser = new LevelParser(actorDict);
 // runGame(schemas, parser, DOMDisplay)
 //   .then(() => console.log('Вы выиграли приз!'));
+
+// схемы уровней должны получатся из файла levels.json (см. описание задания)
 
 const schema = [
   '         ',
