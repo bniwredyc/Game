@@ -9,16 +9,10 @@ class Vector{
     if(!(vector instanceof Vector)){
       throw new Error('Можно прибавлять к вектору только вектор типа Vector');
     }
-    let x = this.x + vector.x;
-    let y = this.y + vector.y;
-    // Здесь можно просто return new Vector(x,y)
-    // и расчёт новых значений можно без создания переменных прямо в конструктор передавать - будет одна строчка
-    let newVector = new Vector(x,y);
-    return newVector;
+    return new Vector(this.x + vector.x, this.y + vector.y);
   }
 
-  // можно добавить значение по-умолчанию = 1
-  times(number){
+  times(number = 1){
     let x = this.x * number;
     let y = this.y * number;
     let myVector = new Vector(x,y);
@@ -27,17 +21,7 @@ class Vector{
 }
 
 class Actor{
-  constructor(pos, size, speed){
-    // Значения по-умолчанию должны задаваться в сигнатуре
-    if(!pos){
-      pos = new Vector(0,0);
-    }
-    if(!size){
-     size = new Vector(1,1);
-    }
-    if(!speed){
-      speed = new Vector(0,0);
-    }
+  constructor(pos = new Vector(0,0), size = new Vector(1,1), speed = new Vector(0,0)){
     if(!(pos instanceof Vector)){
       throw new Error('Передан не объект типа Vector');
     }
@@ -77,62 +61,36 @@ class Actor{
   }
 
   isIntersect(obj){
-    // вторая проверка лишняя  undefined instanceof Actor === false
-    if(!(obj instanceof Actor) || !obj){
+    if(!(obj instanceof Actor)){
       throw new Error('Ошибка с аргументом!');
     }
     if(obj === this){
       return false;
     }
 
-    // тут лучше написать просто return <условие из if>
-    if(obj.left < this.right && obj.right > this.left && obj.top < this.bottom && obj.bottom > this.top){
-      return true;
-    }else{
-       return false;
-    }
-  }
+    return obj.left < this.right && obj.right > this.left && obj.top < this.bottom && obj.bottom > this.top;
+   }
 }
 
 class Level{
   constructor(grid = [], actors = []){
-    // здесь лучше создать копии массивов, чтобы поля объекта нельзя было изменить извне
-    this.grid = grid;
-    this.actors = actors;
+    this.grid = grid.slice();
+    this.actors = actors.slice();
     this.player = this.actors.find(actor => actor.type === 'player');
     this.status = null;
     this.finishDelay = 1;
-  }
-
-  // можно задать в конструкторе
-  get height(){
-    return this.grid.length;
-  }
-
-  // можно посчитать один раз в конструкторе
-  get width(){
-    // короче было бы использовать Math.max и метод map
-    // тут можно использовать стрелочную функцию
-     return this.grid.reduce(function(prev, ar) {
-			return ar.length > prev ? ar.length : prev;
-		}, 0);
+    this.height = this.grid.length;
+    this.width = Math.max(...this.grid.map(line => line.length), 0);
   }
 
   isFinished(){
-    // короче писать просто return ...
-    if(this.status !== null && this.finishDelay < 0){
-      return true;
-    }else{
-      return false;
-    }
+     return this.status !== null && this.finishDelay < 0;
   }
 
   actorAt(actor){
-    // вторая проверка лишняя
-    if(!(actor instanceof Actor) || actor === undefined){
+    if(!actor instanceof Actor){
       throw new Error('Передан некорректный объект!');
     }
-
     return this.actors.find((el) => el.isIntersect(actor));
   }
 
@@ -158,6 +116,8 @@ class Level{
     for(let x = left; x < right; x++){
       for(let y = top; y < bottom; y++){
         // дублирование логики obstacleFromSymbol
+        // let n = new LevelParser();
+        // n.obstacleFromSymbol(this.grid[y][x]);
         if((this.grid[y][x] === 'wall') || this.grid[y][x] === 'lava'){
           return this.grid[y][x];
         }
@@ -176,65 +136,45 @@ class Level{
   }
 
   noMoreActors(type){
-    // здесь можно использовать метод some
-  	for(let actor of this.actors){
-      if(actor.type == type){
-        return false;
-      }
-    }
-    return true;
+    return !(this.actors.some(actor => actor.type == type));
   }
 
   playerTouched(type, actor){
     if(this.status !== null){
       return;
     }
-    // лучше использовать ===
-    if(type == 'lava' || type == 'fireball'){
+    if(type === 'lava' || type === 'fireball'){
       this.status = 'lost';
       return;
     }
-    if(type == 'coin' && actor.type == 'coin'){
+    if(type === 'coin' && actor.type === 'coin'){
       this.removeActor(actor);
       if(this.noMoreActors('coin')){
-        // форматирование
-     	this.status = 'won';
-     	  // лишний return
-      	return;
+        this.status = 'won';
       }
-
-      // лишний return
-      return;
     }
   }
 }
 
 class LevelParser{
-  // dictin не совсем корректное сокращение, лучше dict или dictionary без сокращения
-	constructor(dictin){
-	  // форматирование
-    // лушче создать копию объекта
-        this.dictin = dictin;
-	}
+	constructor(dict){
+    let copyObj = Object.assign({}, dict);
+    this.dict = copyObj;
+  }
 
 	actorFromSymbol(symbol){
-	  // лишняя проверка
-        if(this.dictin && symbol) {
-        	return this.dictin[symbol];
-        }
+    if(this.dict) {
+     	return this.dict[symbol];
+    }
 	}
 
 	obstacleFromSymbol(symbol){
-	  // форматирование
-        if(symbol == 'x'){
+       if(symbol == 'x'){
         	return 'wall';
-        }else if(symbol == '!'){
+       }else if(symbol == '!'){
         	return 'lava';
-        }else{
-          // тут можно обойтись без else
-        	return undefined;
-        }
-	}
+       }
+  	}
 
 	createGrid(array){
 	  // дублирование логики obstacleFromSymbol
@@ -242,11 +182,12 @@ class LevelParser{
        	'x' : 'wall',
        	'!' : 'lava'
        }
-     // форматирование
-       return array.map(function(string) {
+
+     return array.map(function(string) {
        // строку можно преобразовать в массив другим способом
 			return [...string].map(el => ar[el]);
-		});
+			// return string.split(', ');
+	 });
 	}
 
 	createActors(array){
@@ -275,20 +216,8 @@ class LevelParser{
 }
 
 class Fireball extends Actor{
-    constructor(pos, speed){
-       super();
-       // значения по-умолчанию лучше задавать по-другому
-       if(!pos){
-       	pos = new Vector(0,0);
-       }
-       if(!speed){
-       	speed = new Vector(0,0);
-       }
-
-       // совйства должно задаваться через базовый конструктор
-       this.pos = pos;
-       this.speed = speed;
-       this.size = new Vector(1,1);
+    constructor(pos = new Vector(0,0), speed = new Vector(0,0), size = new Vector(1,1)){
+       super(pos, size, speed);
     }
 
     get type(){
