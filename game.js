@@ -115,12 +115,7 @@ class Level{
 
     for(let x = left; x < right; x++){
       for(let y = top; y < bottom; y++){
-        // дублирование логики obstacleFromSymbol
-        // let n = new LevelParser();
-        // n.obstacleFromSymbol(this.grid[y][x]);
-        if((this.grid[y][x] === 'wall') || this.grid[y][x] === 'lava'){
-          return this.grid[y][x];
-        }
+        return this.grid[y][x];
       }
     }
   }
@@ -178,14 +173,14 @@ class LevelParser{
 
 	createGrid(array){
 	  // дублирование логики obstacleFromSymbol
-       let ar = {
-       	'x' : 'wall',
-       	'!' : 'lava'
-       }
+       // let ar = {
+       // 	'x' : 'wall',
+       // 	'!' : 'lava'
+       // }
 
      return array.map(function(string) {
        // строку можно преобразовать в массив другим способом
-			return [...string].map(el => ar[el]);
+			return [...string].map(el => this.obstacleFromSymbol(el));
 			// return string.split(', ');
 	 });
 	}
