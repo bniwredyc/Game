@@ -99,7 +99,6 @@ class Level{
       throw new Error('Передан не Vector!');
     }
 
-    // тут ошибка
     let left = Math.floor(vect.x);
     let right = Math.ceil(vect.x + size.x);
     let top = Math.ceil(vect.y);
@@ -254,10 +253,7 @@ class FireRain extends Fireball{
 }
 
 class Coin extends Actor{
-	constructor(pos){
-		if(!pos){
-			pos = new Vector(0,0);
-		}
+	constructor(pos = new Vector(0,0)){
 		pos = pos.plus(new Vector(0.2, 0.1));
 		let size = new Vector(0.6, 0.6);
 		super(pos, size);
@@ -291,10 +287,7 @@ class Coin extends Actor{
 }
 
 class Player extends Actor{
-	constructor(pos){
-		if(!pos){
-			pos = new Vector(0,0);
-		}
+	constructor(pos = new Vector(0,0)){
     pos = pos.plus(new Vector(0, -0.5));
     let size = new Vector(0.8, 1.5);
     let speed = new Vector(0,0);
@@ -310,12 +303,10 @@ const actorDict = {
   '@': Player,
   'v': FireRain,
   '=': HorizontalFireball,
-  'x': Wall,
-  '!': Lava,
+  '|': VerticalFireball,
   'o': Coin
 }
-
 const parser = new LevelParser(actorDict);
-runGame(loadLevels(), parser, DOMDisplay)
-  .then(() => alert('Вы выиграли приз!'));
-
+loadLevels()
+          .then(schema => runGame(JSON.parse(schema), parser, DOMDisplay)
+                                .then(() => alert('Вы выиграли приз!')));
