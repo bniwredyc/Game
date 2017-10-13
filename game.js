@@ -101,7 +101,7 @@ class Level{
 
     let left = Math.floor(vect.x);
     let right = Math.ceil(vect.x + size.x);
-    let top = Math.ceil(vect.y);
+    let top = Math.floor(vect.y);
     let bottom = Math.ceil(vect.y + size.y);
 
     if((left < 0) || (right > this.width) || (top < 0)){
@@ -114,7 +114,9 @@ class Level{
 
     for(let x = left; x < right; x++){
       for(let y = top; y < bottom; y++){
-        return this.grid[y][x];
+        if ( (this.grid[y][x] === 'wall') || (this.grid[y][x] === 'lava') ) {
+          return this.grid[y][x];
+        }
       }
     }
   }
