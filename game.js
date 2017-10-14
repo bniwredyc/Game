@@ -13,6 +13,9 @@ class Vector{
   }
 
   times(number = 1){
+    // значение переменных не меняется - лучше использовать const
+    // а вообще здесь можно без создания переменных вообще обойтись и
+    // написать всё в одну строчку  return new Vector...
     let x = this.x * number;
     let y = this.y * number;
     let myVector = new Vector(x,y);
@@ -91,6 +94,7 @@ class Level{
     if(!actor instanceof Actor){
       throw new Error('Передан некорректный объект!');
     }
+    // скобки вокруг el можно опустить
     return this.actors.find((el) => el.isIntersect(actor));
   }
 
@@ -99,6 +103,7 @@ class Level{
       throw new Error('Передан не Vector!');
     }
 
+    // const!
     let left = Math.floor(vect.x);
     let right = Math.ceil(vect.x + size.x);
     let top = Math.floor(vect.y);
@@ -114,6 +119,9 @@ class Level{
 
     for(let x = left; x < right; x++){
       for(let y = top; y < bottom; y++){
+        // здесь достаточно проверить, что ячейка не пустая,
+        // в ней можент быть wall, lava или undefined
+        // this.grid[y][x] можно сохранить в переменной
         if ( (this.grid[y][x] === 'wall') || (this.grid[y][x] === 'lava') ) {
           return this.grid[y][x];
         }
@@ -122,6 +130,7 @@ class Level{
   }
 
   removeActor(actor){
+    // проверка на undefined лишняя
     if(!(actor instanceof Actor) || actor === undefined){
       return;
     }
@@ -132,6 +141,7 @@ class Level{
   }
 
   noMoreActors(type){
+    // == лучше заменить на ===, внешние скобки можно опустить
     return !(this.actors.some(actor => actor.type == type));
   }
 
@@ -154,17 +164,20 @@ class Level{
 
 class LevelParser{
 	constructor(dict){
+	  // тут можно не обявлять переменную, а сразу присвоить значение поля
     let copyObj = Object.assign({}, dict);
     this.dict = copyObj;
   }
 
 	actorFromSymbol(symbol){
+	  // можно добавить значение по-умолчанию аргументу в конструкторе и убрать эту проверку
     if(this.dict) {
      	return this.dict[symbol];
     }
 	}
 
 	obstacleFromSymbol(symbol){
+	  // ===
     if(symbol == 'x'){
      	return 'wall';
     }else if(symbol == '!'){
@@ -172,18 +185,24 @@ class LevelParser{
     }
   }
 
+  // можно добавить пустой массив в качестве значения по-умолчанию
 	createGrid(array){
     return array.map(string => {
+      // обычно строки преобразуюутся в массив с помощью метода split
   		return [...string].map(el => this.obstacleFromSymbol(el));
 	 });
 	}
 
 	createActors(array){
 		return array.reduce((prev, string, Y) => {
+      // обычно строки преобразуюутся в массив с помощью метода split
 			[...string].forEach((symb, X) => {
+			  // эта проверка лишняя
 				if(symb) {
+				  // crt - плохое название переменной, непонятно, что в ней хранится
 					let crt = this.actorFromSymbol(symb);
 					if(typeof crt === "function") {
+					  // const
 						let pos = new Vector(X, Y);
 						let checkedActor = new crt(pos);
 						if(checkedActor instanceof Actor) {
@@ -236,6 +255,7 @@ class HorizontalFireball extends Fireball{
 }
 
 class VerticalFireball extends Fireball{
+  // можно добавить значение по-умолчанию
 	constructor(pos){
 		let speed = new Vector(0,2);
 		super(pos, speed);
@@ -243,7 +263,9 @@ class VerticalFireball extends Fireball{
 }
 
 class FireRain extends Fireball{
+  // можно добавить значение по-умолчанию
 	constructor(pos){
+	  // const
     let speed = new Vector(0,3);
     super(pos, speed);
     this.start = pos;
@@ -256,7 +278,9 @@ class FireRain extends Fireball{
 
 class Coin extends Actor{
 	constructor(pos = new Vector(0,0)){
+	  // лучше не менять значения аргументов. В super можно передать pos.plus...
 		pos = pos.plus(new Vector(0.2, 0.1));
+		// const
 		let size = new Vector(0.6, 0.6);
 		super(pos, size);
 
@@ -290,6 +314,7 @@ class Coin extends Actor{
 
 class Player extends Actor{
 	constructor(pos = new Vector(0,0)){
+	  // лучше не менять значения аргументов
     pos = pos.plus(new Vector(0, -0.5));
     let size = new Vector(0.8, 1.5);
     let speed = new Vector(0,0);
@@ -307,7 +332,7 @@ const actorDict = {
   '=': HorizontalFireball,
   '|': VerticalFireball,
   'o': Coin
-}
+} // точка с запятой :)
 const parser = new LevelParser(actorDict);
 loadLevels()
           .then(schema => runGame(JSON.parse(schema), parser, DOMDisplay)
